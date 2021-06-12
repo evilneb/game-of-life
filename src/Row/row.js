@@ -3,7 +3,7 @@ import Cell from '../Cell/cell';
 
 function Row() {
   return (
-    <div className="Row">
+    <div className="Row flex flex-row">
         <Cell></Cell>
         <Cell></Cell>
     </div>
