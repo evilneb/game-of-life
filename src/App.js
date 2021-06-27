@@ -1,10 +1,11 @@
-import './App.css';
-import Grid from './Grid/grid';
+import Grid from './grid';
 
 function App() {
   return (
-    <div className="App w-auto flex content-center">
-      <Grid></Grid>
+    <div className="min-h-screen flex flex-col justify-center">
+      <div className="mx-auto">
+        <Grid rowCount={30} columnCount={30} />
+      </div>
     </div>
   );
 }
