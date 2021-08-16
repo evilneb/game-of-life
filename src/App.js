@@ -6,22 +6,6 @@ import produce from 'immer';
 
 import { useState, useEffect } from 'react';
 
-function initializeGrid(model) {
-  const cellGrid = [];
-  for(let y = 0; y < model.height; y++) {
-    const cells = [];
-    for(let x = 0; x < model.width; x++) {
-      const cell = {
-        alive: model.cellStates[y + x],
-        coordinates: { X: x, Y: y }
-      }
-      cells.push(cell);
-    }
-    cellGrid.push(cells);
-  }
-  return cellGrid;
-}
-
 const rowCount = 30;
 const columnCount = 50;
 
@@ -39,17 +23,61 @@ function App() {
 
   useEffect(() => {
     if(timeTicking)
-      propogate(500);
+      propogate(grid, 500);
   });
   
-  function propogate(ms) {
+  return (
+    <>
+    <div className="min-w-full min-h-screen flex flex-row p-2 bg-gray-700">
+      <div className="flex flex-col mr-2">
+        <button className="bg-green-500 hover:bg-green-700 text-white rounded font-bold px-2 py-1 mb-1" onClick={() => setTimeTicking(!timeTicking)}>{timeTicking ? "Cease" : "Propogate"}</button>
+        <button className="bg-green-500 hover:bg-green-700 text-white rounded font-bold px-2 py-1" onClick={() => propogate(grid, 0)}>Increment</button>
+      </div>
+      
+      <div className="flex flex-col">
+        <div className="mx-auto">{
+          <Grid grid={grid.map((row, y) => 
+              <Row 
+                key={y} 
+                cells={row.map((cell, x) => 
+                    <Cell 
+                      key={`${x},${y}`} 
+                      cell={cell} 
+                      changeState={handleClick} 
+                    />
+                  )} />
+            )} />
+          }
+        </div>
+      </div>
+    </div>
+    </>
+  );
+
+  function initializeGrid(model) {
+    const cellGrid = [];
+    for(let y = 0; y < model.height; y++) {
+      const cells = [];
+      for(let x = 0; x < model.width; x++) {
+        const cell = {
+          alive: model.cellStates[y + x],
+          coordinates: { X: x, Y: y }
+        }
+        cells.push(cell);
+      }
+      cellGrid.push(cells);
+    }
+    return cellGrid;
+  }
+
+  function propogate(grid, speed) {
     setTimeout(() => {
       const nextGrid = produce(grid, gridDraft => {
         for(let y = 0; y < grid.length; y++) {
           for(let x = 0; x < grid[y].length; x++) {
             const cell = grid[y][x];
             gridDraft[y][x] = {
-              alive: determinePropogation(cell),
+              alive: determinePropogation(cell, grid),
               coordinates: { X: x, Y: y }
             };
           }
@@ -57,11 +85,9 @@ function App() {
       });
 
       setGrid(nextGrid);
+    }, speed);
 
-      return !timeTicking;
-    }, ms);
-
-    function determinePropogation(cell) {
+    function determinePropogation(cell, grid) {
       const x = cell.coordinates.X;
       const y = cell.coordinates.Y;
       const neighbors = [
@@ -79,7 +105,7 @@ function App() {
       return willPropogate;
     }
   }
-  
+
   function handleClick(cell) {
     const y = cell.coordinates.Y;
     const x = cell.coordinates.X;
@@ -90,29 +116,6 @@ function App() {
       };
     }));
   }
-  
-  return (
-    <>
-    <button className="bg-green-500 hover:bg-green-700 text-white rounded font-bold" onClick={() => setTimeTicking(!timeTicking)}>{timeTicking ? "Halt" : "Flow"}</button>
-    <button className="bg-green-500 hover:bg-green-700 text-white rounded font-bold" onClick={() => propogate(0)}>Step</button>
-    <div className="min-h-screen flex flex-col justify-center">
-      <div className="mx-auto">{
-        <Grid grid={grid.map((row, y) => 
-            <Row 
-              key={y} 
-              cells={row.map((cell, x) => 
-                  <Cell 
-                    key={`${x},${y}`} 
-                    cell={cell} 
-                    changeState={handleClick} 
-                  />
-                )} />
-          )} />
-        }
-      </div>
-    </div>
-    </>
-  );
 }
 
 export default App;
